@@ -18,9 +18,9 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
-CREATE DATABASE 'db_mahasiswa'
+CREATE DATABASE IF NOT EXISTS `db_mahasiswa`;
 
-USE db_mahasiswa
+USE `db_mahasiswa`;
 --
 
 -- --------------------------------------------------------
