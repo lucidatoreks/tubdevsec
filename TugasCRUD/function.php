@@ -1,6 +1,6 @@
 <?php
 // Koneksi Database
-$koneksi = mysqli_connect("db", "root", "", "db_mahasiswa");
+$koneksi = mysqli_connect("db", "root", "root", "db_mahasiswa");
 
 // membuat fungsi query dalam bentuk array
 function query($query)
