@@ -30,7 +30,7 @@ jobs:
       - name: Grant Execute Permissions to PHPUnit
         run: chmod +x vendor/bin/phpunit
       - name: Run Tests
-        run: vendor/bin/phpunit
+        run: vendor/bin/phpunit tests
 
   sast:
     needs: test
