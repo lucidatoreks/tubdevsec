@@ -37,6 +37,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - name: Install PHPStan Globally
+        run: composer global require phpstan/phpstan
       - name: Run PHPStan
         run: ~/.composer/vendor/bin/phpstan analyse --level=1 .
 
