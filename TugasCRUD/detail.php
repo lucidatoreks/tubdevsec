@@ -1,4 +1,5 @@
 <?php
+/** @var mysqli $koneksi */
 // Memanggil atau membutuhkan file function.php
 require 'function.php';
 

@@ -1,4 +1,5 @@
 <?php
+/** @var mysqli $koneksi */
 session_start();
 // Jika bisa login maka ke index.php
 if (isset($_SESSION['login'])) {
