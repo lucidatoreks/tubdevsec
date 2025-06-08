@@ -7,3 +7,4 @@ session_destroy();
 
 header('location: index.php');
     // kembali ke index.php
+    // test ci-cd
