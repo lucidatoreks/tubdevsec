@@ -1,0 +1,6 @@
+parameters:
+    paths:
+        - TugasCRUD
+    level: 1
+    excludePaths:
+        - vendor
