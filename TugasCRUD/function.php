@@ -2,6 +2,11 @@
 // Koneksi Database
 $koneksi = mysqli_connect("db", "root", "root", "db_mahasiswa");
 
+
+//Memanggil dan menginisialisasi logger dari file logger.php
+$log = require 'logger.php';
+
+
 // membuat fungsi query dalam bentuk array
 function query($query)
 {
@@ -24,7 +29,7 @@ function query($query)
 // Membuat fungsi tambah
 function tambah($data)
 {
-    global $koneksi;
+    global $koneksi, $log;
 
     $nim = htmlspecialchars($data['nim']);
     $nama = htmlspecialchars($data['nama']);
@@ -34,24 +39,40 @@ function tambah($data)
 
     $sql = "INSERT INTO mahasiswa(nim, nama, kelas, jurusan, semester) VALUES ('$nim','$nama','$kelas','$jurusan','$semester')";
 
-    mysqli_query($koneksi, $sql);
+    // Menyiapkan statement
+    $stmt = mysqli_prepare($koneksi, $sql);
 
-    return mysqli_affected_rows($koneksi);
+    // Mengikat parameter ke statement
+    mysqli_stmt_bind_param($stmt, "sssss", $nim, $nama, $kelas, $jurusan, $semester);
+    
+    // Menjalankan statement
+    mysqli_stmt_execute($stmt);
+    
+    $log->info("Data mahasiswa baru ditambahkan", ['nim' => $nim, 'nama' => $nama]);
+
+    return mysqli_stmt_affected_rows($stmt);
+
 }
-
 // Membuat fungsi hapus
 function hapus($nim)
 {
-    global $koneksi;
+    global $koneksi, $log;
 
-    mysqli_query($koneksi, "DELETE FROM mahasiswa WHERE nim = $nim");
-    return mysqli_affected_rows($koneksi);
+    $sql = "DELETE FROM mahasiswa WHERE nim = ?";
+    $stmt = mysqli_prepare($koneksi, $sql);
+
+    mysqli_stmt_bind_param($stmt, "s", $nim);
+    mysqli_stmt_execute($stmt);
+
+    $log->info("Data mahasiswa berhasil dihapus.", ['nim' => $nim]);
+
+    return mysqli_stmt_affected_rows($stmt);
 }
 
 // Membuat fungsi ubah
 function ubah($data)
 {
-    global $koneksi;
+    global $koneksi, $log;
 
     $nim = htmlspecialchars($data['nim']);
     $nama = htmlspecialchars($data['nama']);
@@ -59,9 +80,13 @@ function ubah($data)
     $jurusan = htmlspecialchars($data['jurusan']);
     $semester = htmlspecialchars($data['semester']);
 
-    $sql = "UPDATE mahasiswa SET nama = '$nama', kelas = '$kelas', jurusan = '$jurusan', semester = '$semester' WHERE nim = $nim";
+    $sql = "UPDATE mahasiswa SET nama = ?, kelas = ?, jurusan = ?, semester = ? WHERE nim = ?";
+    $stmt = mysqli_prepare($koneksi, $sql);
 
-    mysqli_query($koneksi, $sql);
+    mysqli_stmt_bind_param($stmt, "sssss", $nama, $kelas, $jurusan, $semester, $nim);
+    mysqli_stmt_execute($stmt);
+
+    $log->info("Data mahasiswa berhasil diubah.", ['nim' => $nim, 'nama_baru' => $nama]);
 
     return mysqli_affected_rows($koneksi);
 }

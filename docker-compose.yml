@@ -9,7 +9,7 @@ services:
       - db
     volumes:
       - ./TugasCRUD:/var/www/html
-
+      - /var/www/html/vendor
   db:
     image: mysql:5.7
     environment:
@@ -17,3 +17,9 @@ services:
       MYSQL_DATABASE: db_mahasiswa
     ports:
       - "3306:3306"
+    volumes:
+      - ./db_mahasiswa.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
