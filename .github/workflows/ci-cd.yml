@@ -5,7 +5,8 @@ on:
     branches: [ "main" ]
 
 jobs:
-  test:
+  sast:
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -15,16 +16,20 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.1'
+          tools: composer
 
       - name: Install Dependencies
-        run: composer install
+        run: composer install --no-interaction --no-progress
 
       # Add this step to grant execute permissions
-      - name: Grant Execute Permissions for PHPUnit
-        run: chmod +x vendor/bin/phpunit
+      - name: Grant Execute Permissions for PHPStan
+        run: chmod +x vendor/bin/phpstan
 
-      - name: Run PHPUnit Tests
-        run: vendor/bin/phpunit tests
+      - name: Run PHPStan Analysis (SAST)
+        run: vendor/bin/phpstan analyse -c phpstan.neon --level=4
+
+      - name: Security Scan Dependencies with Composer Audit (SAST)
+        run: composer audit
   # Job 2: Run Static Application Security Testing (SAST)
   sast:
     needs: test
