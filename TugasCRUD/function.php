@@ -2,6 +2,11 @@
 // Koneksi Database
 $koneksi = mysqli_connect("db", "root", "root", "db_mahasiswa");
 
+
+//Memanggil dan menginisialisasi logger dari file logger.php
+$log = require 'logger.php';
+
+
 // membuat fungsi query dalam bentuk array
 function query($query)
 {
@@ -42,6 +47,8 @@ function tambah($data)
     
     // Menjalankan statement
     mysqli_stmt_execute($stmt);
+    
+    $log->info("Data mahasiswa baru ditambahkan", ['nim' => $nim, 'nama' => $nama]);
 
     return mysqli_stmt_affected_rows($stmt);
 
@@ -56,6 +63,8 @@ function hapus($nim)
 
     mysqli_stmt_bind_param($stmt, "s", $nim);
     mysqli_stmt_execute($stmt);
+
+    $log->info("Data mahasiswa berhasil dihapus.", ['nim' => $nim]);
 
     return mysqli_stmt_affected_rows($stmt);
 }
@@ -76,6 +85,8 @@ function ubah($data)
 
     mysqli_stmt_bind_param($stmt, "sssss", $nama, $kelas, $jurusan, $semester, $nim);
     mysqli_stmt_execute($stmt);
+
+    $log->info("Data mahasiswa berhasil diubah.", ['nim' => $nim, 'nama_baru' => $nama]);
 
     return mysqli_affected_rows($koneksi);
 }
