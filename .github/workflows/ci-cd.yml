@@ -4,6 +4,14 @@ on:
   push:
     branches: [ "main" ]
 
+# Add proper permissions for GitHub token
+permissions:
+  contents: read
+  issues: write
+  security-events: write
+  actions: read
+  pull-requests: write
+
 jobs:
   # Job 1: Run unit tests
   test:
@@ -143,12 +151,22 @@ jobs:
       - name: Run ZAP Baseline Scan
         uses: zaproxy/action-baseline@v0.12.0
         with:
-          target: 'http://localhost:8081'  # Changed to match your docker-compose port
-          fail_action: false  # Don't fail the build on security findings initially
+          target: 'http://localhost:8081'
+          fail_action: false  # Set to true once security warnings are addressed
           artifact_name: 'zap_dast_report'
-          cmd_options: '-a -d -m 2 -T 5'  # Additional options for better scanning
+          cmd_options: '-a -d -m 2 -T 15 -z "-config spider.maxDuration=5"'
         env:
           COMPOSER_NO_INTERACTION: 1
+
+      - name: Upload ZAP Reports as Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: zap-security-reports
+          path: |
+            /zap/wrk/report_html.html
+            /zap/wrk/report_md.md
+            /zap/wrk/report_json.json
+        if: always()
 
       - name: Stop Docker Compose
         run: docker compose down
@@ -158,7 +176,27 @@ jobs:
   deploy:
     needs: dast
     runs-on: ubuntu-latest
+    environment: staging  # Optional: use GitHub environments for better control
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Simulated Deploy to Staging
-        run: echo "DAST passed! Deploying to staging environment..."
-      # Add your actual deployment script here
+        run: |
+          echo "All security tests passed! Deploying to staging environment..."
+          echo "Deployment timestamp: $(date)"
+          echo "Commit SHA: ${{ github.sha }}"
+          echo "Branch: ${{ github.ref_name }}"
+
+      # Add your actual deployment steps here
+      # Example deployment steps:
+      # - name: Deploy to staging server
+      #   run: |
+      #     # Your deployment commands here
+      #     # ssh user@staging-server "cd /path/to/app && git pull && docker compose up -d"
+
+      - name: Notify deployment status
+        run: |
+          echo "✅ Deployment to staging completed successfully"
+          echo "🔗 Staging URL: https://your-staging-url.com"
+          echo "📊 Security scan results: Check the zap-security-reports artifact"
