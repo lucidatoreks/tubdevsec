@@ -32,12 +32,16 @@ if (isset($_POST['login'])) {
             $_SESSION['login'] = true;
             $_SESSION['username'] = $row['username']; // Opsional: simpan username di session
 
+             $log->info("Login berhasil", ['username' => $username]);
+
             header('location:index.php');
             exit;
         }
     }
  
     $error = true;  
+    $log->warning("Percobaan login gagal", ['username' => $username, 'ip_address' => $_SERVER['REMOTE_ADDR']]);
+
 }
 
 ?>
