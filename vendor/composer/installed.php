@@ -3,7 +3,7 @@
         'name' => 'yourname/tubdevsec',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '1cfb2ca6e5f080935bee06db2fc603e3a8d4cb8c',
+        'reference' => 'f3bed28f4f5087e405f6942d68e43faa3299a3c3',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -26,7 +26,7 @@
             'type' => 'library',
             'install_path' => __DIR__ . '/../monolog/monolog',
             'aliases' => array(),
-            'dev_requirement' => true,
+            'dev_requirement' => false,
         ),
         'myclabs/deep-copy' => array(
             'pretty_version' => '1.13.1',
@@ -134,10 +134,10 @@
             'type' => 'library',
             'install_path' => __DIR__ . '/../psr/log',
             'aliases' => array(),
-            'dev_requirement' => true,
+            'dev_requirement' => false,
         ),
         'psr/log-implementation' => array(
-            'dev_requirement' => true,
+            'dev_requirement' => false,
             'provided' => array(
                 0 => '1.0.0 || 2.0.0 || 3.0.0',
             ),
@@ -298,7 +298,7 @@
         'yourname/tubdevsec' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '1cfb2ca6e5f080935bee06db2fc603e3a8d4cb8c',
+            'reference' => 'f3bed28f4f5087e405f6942d68e43faa3299a3c3',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

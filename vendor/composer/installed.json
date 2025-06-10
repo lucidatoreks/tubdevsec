@@ -2056,7 +2056,6 @@
     "dev": true,
     "dev-package-names": [
         "doctrine/instantiator",
-        "monolog/monolog",
         "myclabs/deep-copy",
         "nikic/php-parser",
         "phar-io/manifest",
@@ -2068,7 +2067,6 @@
         "phpunit/php-text-template",
         "phpunit/php-timer",
         "phpunit/phpunit",
-        "psr/log",
         "sebastian/cli-parser",
         "sebastian/code-unit",
         "sebastian/code-unit-reverse-lookup",
