@@ -1,5 +1,4 @@
 <?php
-/** @var mysqli $koneksi */
 session_start();
 // Jika bisa login maka ke index.php
 if (isset($_SESSION['login'])) {
@@ -13,19 +12,29 @@ require 'function.php';
 // jika tombol yang bernama login diklik
 if (isset($_POST['login'])) {
     $username = $_POST['username'];
-    $password = md5($_POST['password']);
-    // password menggunakan md5
+    $password = $_POST['password'];
+    
 
-    // mengambil data
-    $result = mysqli_query($koneksi, "SELECT * FROM admin WHERE username = '$username'");
+    $sql = "SELECT * FROM admin WHERE username = ?";
+    $stmt = mysqli_prepare($koneksi, $sql);
+    
+    mysqli_stmt_bind_param($stmt, "s", $username);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
 
-    $cek = mysqli_num_rows($result);
+    // Cek apakah user ditemukan
+    if (mysqli_num_rows($result) === 1) {
+        $row = mysqli_fetch_assoc($result);
+        
+        // Verifikasi password yang diinput dengan hash di database
+        if (password_verify($password, $row['password'])) {
+            // Jika password benar, buat session
+            $_SESSION['login'] = true;
+            $_SESSION['username'] = $row['username']; // Opsional: simpan username di session
 
-    if ($cek > 0) {
-        $_SESSION['login'] = true;
-
-        header('location:index.php');
-        exit;
+            header('location:index.php');
+            exit;
+        }
     }
  
     $error = true;  
@@ -55,7 +64,7 @@ if (isset($_POST['login'])) {
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
-            <a class="navbar-brand" href="index.php">FTI UNMER</a>
+            <a class="navbar-brand" href="index.php">KAMPUS</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
