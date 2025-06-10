@@ -29,7 +29,7 @@ function query($query)
 // Membuat fungsi tambah
 function tambah($data)
 {
-    global $koneksi;
+    global $koneksi, $log;
 
     $nim = htmlspecialchars($data['nim']);
     $nama = htmlspecialchars($data['nama']);
@@ -56,7 +56,7 @@ function tambah($data)
 // Membuat fungsi hapus
 function hapus($nim)
 {
-    global $koneksi;
+    global $koneksi, $log;
 
     $sql = "DELETE FROM mahasiswa WHERE nim = ?";
     $stmt = mysqli_prepare($koneksi, $sql);
@@ -72,7 +72,7 @@ function hapus($nim)
 // Membuat fungsi ubah
 function ubah($data)
 {
-    global $koneksi;
+    global $koneksi, $log;
 
     $nim = htmlspecialchars($data['nim']);
     $nama = htmlspecialchars($data['nama']);
