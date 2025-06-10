@@ -1,6 +1,7 @@
 {
   "name": "yourname/tubdevsec",
   "require-dev": {
+    "monolog/monolog": "^2.0",
     "phpunit/phpunit": "^9.5",
     "phpstan/phpstan": "^1.11"
   },
