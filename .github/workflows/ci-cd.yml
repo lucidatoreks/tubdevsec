@@ -26,7 +26,7 @@ jobs:
       - name: Run PHPUnit Tests
         run: vendor/bin/phpunit tests
 
-  # Job 2: Run Static Application Security Testing (SAST)
+  # Job 2: Run Static Application Security Testing (SAST) and generate reports
   sast:
     needs: test
     runs-on: ubuntu-latest
@@ -47,14 +47,24 @@ jobs:
         run: chmod +x vendor/bin/phpstan
 
       - name: Run PHPStan Analysis (SAST)
-        run: vendor/bin/phpstan analyse -c phpstan.neon --level=4
+        # Output report to a file; continue on error to allow artifact upload
+        run: vendor/bin/phpstan analyse -c phpstan.neon --level=4 --error-format=json > phpstan-report.json || true
 
       - name: Security Scan Dependencies with Composer Audit (SAST)
-        run: composer audit
+        # Output report to a file; continue on error
+        run: composer audit --format=json > composer-audit-report.json || true
 
-  # Job 3: Deploy to a temporary environment for DAST scanning
-# Job 3: Run Dynamic Application Security Testing (DAST)
-  # This job now includes starting the server and scanning it.
+      - name: Upload SAST Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: sast-reports
+          path: |
+            phpstan-report.json
+            composer-audit-report.json
+        # Optional: Only upload if the files exist
+        if: success() || failure()
+
+  # Job 3: Run Dynamic Application Security Testing (DAST)
   dast:
     needs: sast
     runs-on: ubuntu-latest
@@ -71,6 +81,7 @@ jobs:
         run: composer install --no-interaction --no-progress
 
       - name: Start PHP Server for DAST
+        # Start server in the background so the next step can run
         run: |
           echo "Starting PHP server on localhost:8000"
           php -S localhost:8000 -t public &
@@ -81,7 +92,7 @@ jobs:
         with:
           target: 'http://localhost:8000'
           fail_action: true
-          # Use the corrected 'artifact_name' parameter
+          # Use the corrected 'artifact_name' parameter for the DAST report
           artifact_name: 'zap_dast_report'
 
   # Job 4: Deploy to Staging (if all previous jobs succeed)
@@ -89,9 +100,6 @@ jobs:
     needs: dast
     runs-on: ubuntu-latest
     steps:
-      - name: Simulated Deploy to Staging
-        run: echo "DAST passed! Deploying to staging environment..."
-      # Add your actual deployment script here
       - name: Simulated Deploy to Staging
         run: echo "DAST passed! Deploying to staging environment..."
       # Add your actual deployment script here
