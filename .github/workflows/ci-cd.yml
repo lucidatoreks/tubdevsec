@@ -53,7 +53,9 @@ jobs:
         run: composer audit
 
   # Job 3: Deploy to a temporary environment for DAST scanning
-  deploy_for_dast:
+# Job 3: Run Dynamic Application Security Testing (DAST)
+  # This job now includes starting the server and scanning it.
+  dast:
     needs: sast
     runs-on: ubuntu-latest
     steps:
@@ -74,27 +76,22 @@ jobs:
           php -S localhost:8000 -t public &
           sleep 5 # Give server time to start
 
-  # Job 4: Run Dynamic Application Security Testing (DAST)
-  dast:
-    needs: deploy_for_dast
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
       - name: OWASP ZAP Baseline Scan (DAST)
         uses: zaproxy/action-baseline@v0.11.0
         with:
           target: 'http://localhost:8000'
           fail_action: true
-          report_title: 'OWASP ZAP DAST Report'
-          report_artifact_name: 'zap_dast_report'
+          # Use the corrected 'artifact_name' parameter
+          artifact_name: 'zap_dast_report'
 
-  # Job 5: Deploy to Staging (if all previous jobs succeed)
+  # Job 4: Deploy to Staging (if all previous jobs succeed)
   deploy:
     needs: dast
     runs-on: ubuntu-latest
     steps:
+      - name: Simulated Deploy to Staging
+        run: echo "DAST passed! Deploying to staging environment..."
+      # Add your actual deployment script here
       - name: Simulated Deploy to Staging
         run: echo "DAST passed! Deploying to staging environment..."
       # Add your actual deployment script here
