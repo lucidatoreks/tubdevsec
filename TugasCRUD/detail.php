@@ -8,12 +8,16 @@ if (isset($_POST['dataSiswa'])) {
     $output = '';
 
     // mengambil data Mahasiswa dari nim 
-    $sql = "SELECT * FROM mahasiswa WHERE nim = '" . $_POST['dataSiswa'] . "'";
-    $result = mysqli_query($koneksi, $sql);
+    $sql = "SELECT * FROM mahasiswa WHERE nim = ?";
+    $stmt = mysqli_prepare($koneksi, $sql);
+    mysqli_stmt_bind_param($stmt, "s", $nim);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
 
     $output .= '<div class="table-responsive">
                         <table class="table table-bordered">';
-    foreach ($result as $row) {
+    if (mysqli_num_rows($result) > 0) {
+        $row = mysqli_fetch_assoc($result);
         $output .= '
                         <tr>
                             <th width="40%">NIM</th>

@@ -34,18 +34,30 @@ function tambah($data)
 
     $sql = "INSERT INTO mahasiswa(nim, nama, kelas, jurusan, semester) VALUES ('$nim','$nama','$kelas','$jurusan','$semester')";
 
-    mysqli_query($koneksi, $sql);
+    // Menyiapkan statement
+    $stmt = mysqli_prepare($koneksi, $sql);
 
-    return mysqli_affected_rows($koneksi);
+    // Mengikat parameter ke statement
+    mysqli_stmt_bind_param($stmt, "sssss", $nim, $nama, $kelas, $jurusan, $semester);
+    
+    // Menjalankan statement
+    mysqli_stmt_execute($stmt);
+
+    return mysqli_stmt_affected_rows($stmt);
+
 }
-
 // Membuat fungsi hapus
 function hapus($nim)
 {
     global $koneksi;
 
-    mysqli_query($koneksi, "DELETE FROM mahasiswa WHERE nim = $nim");
-    return mysqli_affected_rows($koneksi);
+    $sql = "DELETE FROM mahasiswa WHERE nim = ?";
+    $stmt = mysqli_prepare($koneksi, $sql);
+
+    mysqli_stmt_bind_param($stmt, "s", $nim);
+    mysqli_stmt_execute($stmt);
+
+    return mysqli_stmt_affected_rows($stmt);
 }
 
 // Membuat fungsi ubah
@@ -59,9 +71,11 @@ function ubah($data)
     $jurusan = htmlspecialchars($data['jurusan']);
     $semester = htmlspecialchars($data['semester']);
 
-    $sql = "UPDATE mahasiswa SET nama = '$nama', kelas = '$kelas', jurusan = '$jurusan', semester = '$semester' WHERE nim = $nim";
+    $sql = "UPDATE mahasiswa SET nama = ?, kelas = ?, jurusan = ?, semester = ? WHERE nim = ?";
+    $stmt = mysqli_prepare($koneksi, $sql);
 
-    mysqli_query($koneksi, $sql);
+    mysqli_stmt_bind_param($stmt, "sssss", $nama, $kelas, $jurusan, $semester, $nim);
+    mysqli_stmt_execute($stmt);
 
     return mysqli_affected_rows($koneksi);
 }
