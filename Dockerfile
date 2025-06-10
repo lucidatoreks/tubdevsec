@@ -1,9 +1,21 @@
 FROM php:8.1-apache
 
+RUN apt-get update && apt-get install -y \
+    git \
+    unzip \
+    && rm -rf /var/lib/apt/lists/*
+
 RUN docker-php-ext-install mysqli
 
-# Copy only the TugasCRUD folder content to Apache's root
-COPY TugasCRUD/ /var/www/html/
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+WORKDIR /var/www/html
+
+COPY composer.json composer.lock* ./
+
+RUN composer install --no-dev --optimize-autoloader
+
+COPY TugasCRUD/ .
 
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html \
