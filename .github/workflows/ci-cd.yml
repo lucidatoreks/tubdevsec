@@ -99,7 +99,7 @@ jobs:
 
   # Job 4: Deploy ke Server Staging
   deploy:
-    needs: dast
+    needs: sast
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
