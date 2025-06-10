@@ -1,118 +1,105 @@
-# .github/workflows/main.yml
-
-name: CI/CD Pipeline with Bandit SAST
+name: CI/CD for PHP App
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    branches: [ "main" ]
 
 jobs:
-  # Job 1. Build: Tidak ada perubahan
-  build:
-    name: 1. Build Image Locally
+  # Job 1: Run unit tests
+  test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      - name: Build Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: ./src
-          push: false
-          load: true
-          tags: local-app:latest
 
-  # Job 2. Unit Test: Tidak ada perubahan
-  unit-test:
-    name: 2. Unit Testing
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+
+      - name: Install Dependencies
+        run: composer install --no-interaction --no-progress
+
+      - name: Run PHPUnit Tests
+        run: vendor/bin/phpunit tests
+
+  # Job 2: Run Static Application Security Testing (SAST)
+  sast:
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
         with:
-          python-version: '3.9'
-      - name: Install dependencies
+          php-version: '8.1'
+          tools: composer
+
+      - name: Install Dependencies
+        run: composer install --no-interaction --no-progress
+
+      - name: Run PHPStan Analysis (SAST)
+        run: vendor/bin/phpstan analyse -c phpstan.neon --level=4
+
+      - name: Security Scan Dependencies with Composer Audit (SAST)
+        run: composer audit
+
+  # Job 3: Deploy to a temporary environment for DAST scanning
+  deploy_for_dast:
+    needs: sast
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+
+      # Note: For a real app, you might need to install dependencies
+      # and prepare a database or .env file here.
+      - name: Install Dependencies
+        run: composer install --no-interaction --no-progress
+
+      - name: Start PHP Server for DAST
+        # Starts a server in the public directory on port 8000.
+        # The '&' runs it in the background so the workflow can continue.
         run: |
-          python -m pip install --upgrade pip
-          pip install -r src/requirements.txt
-          pip install pytest
-      - name: Run unit tests with pytest
-        run: pytest src/tests/
+          echo "Starting PHP server on localhost:8000"
+          php -S localhost:8000 -t public &
+          sleep 5 # Give server time to start
 
-  # Job 3. SAST: Disederhanakan, hanya menggunakan Bandit
-  sast-scan:
-    name: 3. SAST Security Scanning (Bandit)
+  # Job 4: Run Dynamic Application Security Testing (DAST)
+  dast:
+    needs: deploy_for_dast
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: OWASP ZAP Baseline Scan (DAST)
+        uses: zaproxy/action-baseline@v0.11.0
         with:
-          python-version: '3.9'
+          # URL of the application to scan
+          target: 'http://localhost:8000'
+          # Fail the build if any alerts are found
+          fail_action: true
+          # You can specify a rules file for more control
+          # rules_file_name: '.zap/rules.tsv'
+          # Generate a report
+          report_title: 'OWASP ZAP DAST Report'
+          report_artifact_name: 'zap_dast_report'
 
-      - name: Run Bandit Scan
-        run: |
-          pip install bandit
-          # Membuat file laporan bernama bandit-report.json
-          bandit -r src/ -ll -ii -f json -o bandit-report.json
-        # continue-on-error agar job upload artifact tetap berjalan
-        continue-on-error: true
 
-      - name: Upload Bandit report as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: bandit-sast-report
-          path: bandit-report.json
-      
-      # LANGKAH SONARCLOUD DIHAPUS DARI SINI
-
-  # Job 4. DAST: Tidak ada perubahan
-  dast-scan:
-    name: 4. DAST Security Scanning
+  # Job 5: Deploy to Staging (if all previous jobs succeed)
+  deploy:
+    needs: dast
     runs-on: ubuntu-latest
-    needs: [build, unit-test, sast-scan]
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      - name: Run application using Docker Compose
-        run: docker-compose up -d
-      - name: Wait for application
-        run: sleep 30
-      - name: Run OWASP ZAP Baseline Scan
-        uses: zaproxy/action-baseline@v0.10.0
-        with:
-          target: 'http://localhost:1337/'
-
-  # Job 5. Deployment: Tidak ada perubahan
-  deploy-to-staging:
-    name: 5. Deploy to Staging via Source Code
-    runs-on: ubuntu-latest
-    needs: dast-scan
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      - name: Copy source code to staging server
-        uses: appleboy/scp-action@v0.1.4
-        with:
-          host: ${{ secrets.STAGING_HOST }}
-          username: ${{ secrets.STAGING_USERNAME }}
-          key: ${{ secrets.STAGING_SSH_KEY }}
-          source: "."
-          target: "/home/${{ secrets.STAGING_USERNAME }}/tubdevsec"
-      - name: Build and run on staging server
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.STAGING_HOST }}
-          username: ${{ secrets.STAGING_USERNAME }}
-          key: ${{ secrets.STAGING_SSH_KEY }}
-          script: |
-            cd /home/${{ secrets.STAGING_USERNAME }}/tubdevsec
-            docker-compose build --no-cache
-            docker-compose up -d --force-recreate
+      - name: Simulated Deploy to Staging
+        run: echo "DAST passed! Deploying to staging environment..."
+      # Add your actual deployment script here
+      # (e.g., using scp, rsync, or a cloud provider's CLI)
