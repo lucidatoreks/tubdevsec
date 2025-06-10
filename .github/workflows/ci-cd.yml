@@ -72,28 +72,21 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.1'
+      - name: Start App with Docker Compose
+        run: docker-compose up -d
 
-      - name: Install Dependencies
-        run: composer install --no-interaction --no-progress
+      - name: Wait for App to Be Ready
+        run: sleep 10
 
-      - name: Start PHP Server for DAST
-        # Start server in the background so the next step can run
-        run: |
-          echo "Starting PHP server on localhost:8000"
-          php -S localhost:8000 -t public &
-          sleep 5 # Give server time to start
-
-      - name: OWASP ZAP Baseline Scan (DAST)
+      - name: Run ZAP Baseline Scan
         uses: zaproxy/action-baseline@v0.11.0
         with:
-          target: 'http://localhost:8000'
+          target: 'http://localhost:8080'  # Port dari Docker Compose
           fail_action: true
-          # Use the corrected 'artifact_name' parameter for the DAST report
           artifact_name: 'zap_dast_report'
+        env:
+          COMPOSER_NO_INTERACTION: 1
+
 
   # Job 4: Deploy to Staging (if all previous jobs succeed)
   deploy:
