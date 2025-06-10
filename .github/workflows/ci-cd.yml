@@ -99,39 +99,26 @@ jobs:
 
   # Job 4: Deploy ke Server Staging
   deploy:
-    needs: sast
-    runs-on: ubuntu-latest
+    # PERUBAHAN DI SINI:
+    # Job ini sekarang berjalan di runner yang Anda instal di VM
+    runs-on: self-hosted
+    
+    # Job ini tetap bergantung pada dast, pastikan alurnya benar
+    needs: dast
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Copy files to staging server via SCP
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.STAGING_HOST }}
-          username: ${{ secrets.STAGING_USERNAME }}
-          key: ${{ secrets.STAGING_SSH_KEY }}
-          port: 22
-          source: "./*" # Menyalin semua file dan folder
-          target: "~/app-staging" # Direktori tujuan di server staging
-
-      - name: Deploy application on staging server via SSH
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.STAGING_HOST }}
-          username: ${{ secrets.STAGING_USERNAME }}
-          key: ${{ secrets.STAGING_SSH_KEY }}
-          script: |
-            # Masuk ke direktori aplikasi di server staging
-            cd ~/app-staging
-            
-            echo "Starting deployment on server..."
-            
-            # Hentikan dan hapus kontainer lama untuk memastikan pembaruan bersih
-            docker compose down -v
-            
-            # Bangun ulang image dan jalankan aplikasi di background
-            docker compose up --build -d
-            
-            echo "✅ Deployment to staging completed successfully"
-            echo "🔗 Staging URL: http://${{ secrets.STAGING_HOST }}:8081"
+      - name: Deploy application locally on the runner
+        run: |
+          echo "Starting local deployment on the runner..."
+          
+          # Hentikan dan hapus kontainer lama jika ada
+          docker compose down -v
+          
+          # Bangun ulang dan jalankan aplikasi
+          # Tidak perlu SSH atau SCP lagi, karena kita sudah berada di server yang benar!
+          docker compose up --build -d
+          
+          echo "✅ Deployment to staging completed successfully"
