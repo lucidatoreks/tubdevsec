@@ -151,7 +151,7 @@ jobs:
         env:
           COMPOSER_NO_INTERACTION: 1
         with:
-          target: 'http://web:80'
+          target: 'http://localhost:8081'
           fail_action: false
           cmd_options: '-a -d -m 2 -T 15 -z "-config spider.maxDuration=5"'
           artifact_name: 'zap-security-report'
