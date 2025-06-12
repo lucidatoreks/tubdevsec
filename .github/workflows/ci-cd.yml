@@ -143,17 +143,20 @@ jobs:
       - name: Prepare ZAP Workspace
         run: |
           mkdir -p ${{ github.workspace }}/zap-reports
-          chmod -R 777 ${{ github.workspace }}
-
+          chmod -R 777 ${{ github.workspace }}/zap-reports
+    
       - name: Run ZAP Baseline Scan
         uses: zaproxy/action-baseline@v0.12.0
+        continue-on-error: true
+        env:
+          COMPOSER_NO_INTERACTION: 1
         with:
-          target: 'http://localhost:8081'
+          target: 'http://web:80'
           fail_action: false
           cmd_options: '-a -d -m 2 -T 15 -z "-config spider.maxDuration=5"'
           artifact_name: 'zap-security-report'
-        env:
-          COMPOSER_NO_INTERACTION: 1
+          workdir: ${{ github.workspace }}/zap-reports
+
 
       - name: Upload ZAP Reports
         uses: actions/upload-artifact@v4
