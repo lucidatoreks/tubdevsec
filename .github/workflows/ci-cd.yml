@@ -143,7 +143,7 @@ jobs:
       - name: Prepare ZAP Workspace
         run: |
           mkdir -p ${{ github.workspace }}/zap-reports
-          chmod -R 777 ${{ github.workspace }}/zap-reports
+          chmod -R 777 ${{ github.workspace }}
 
       - name: Run ZAP Baseline Scan
         uses: zaproxy/action-baseline@v0.12.0
