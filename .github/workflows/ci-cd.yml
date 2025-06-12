@@ -175,22 +175,21 @@ jobs:
         if: always()
 
   deploy:
+    runs-on: self-hosted
     needs: dast
-    runs-on: ubuntu-latest
-    environment: staging
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Simulated Deploy to Staging
+      - name: Deploy application locally on the runner
         run: |
-          echo "All security tests passed! Deploying to staging environment..."
-          echo "Deployment timestamp: $(date)"
-          echo "Commit SHA: ${{ github.sha }}"
-          echo "Branch: ${{ github.ref_name }}"
-
-      - name: Notify deployment status
-        run: |
+          echo "Starting local deployment on the runner..."
+          
+          # Hentikan dan hapus kontainer lama jika ada
+          docker compose down -v
+          
+          # Bangun ulang dan jalankan aplikasi
+          # Tidak perlu SSH atau SCP lagi, karena kita sudah berada di server yang benar!
+          docker compose up --build -d
+          
           echo "✅ Deployment to staging completed successfully"
-          echo "🔗 Staging URL: https://your-staging-url.com"
-          echo "📊 Security scan results: Check the zapsecurityreports artifact"
