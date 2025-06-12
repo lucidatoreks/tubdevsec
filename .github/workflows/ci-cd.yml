@@ -140,6 +140,15 @@ jobs:
           echo "Trying to exec into container..."
           docker compose exec -T web curl -v http://localhost || echo "Container internal curl failed"
 
+      - name: Prepare ZAP Report Files
+        run: |
+          # Create empty report files that ZAP can write to
+          touch report_html.html
+          touch report_md.md
+          touch report_json.json
+          # Make them writable
+          chmod 666 report_html.html report_md.md report_json.json
+
       - name: Run ZAP Baseline Scan
         uses: zaproxy/action-baseline@v0.12.0
         continue-on-error: true
