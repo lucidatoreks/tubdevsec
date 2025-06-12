@@ -140,11 +140,6 @@ jobs:
           echo "Trying to exec into container..."
           docker compose exec -T web curl -v http://localhost || echo "Container internal curl failed"
 
-      - name: Prepare ZAP Workspace
-        run: |
-          mkdir -p ${{ github.workspace }}/zap-reports
-          chmod -R 777 ${{ github.workspace }}/zap-reports
-    
       - name: Run ZAP Baseline Scan
         uses: zaproxy/action-baseline@v0.12.0
         continue-on-error: true
@@ -154,15 +149,15 @@ jobs:
           target: 'http://localhost:8081'
           fail_action: false
           cmd_options: '-a -d -m 2 -T 15 -z "-config spider.maxDuration=5"'
-          artifact_name: 'zap-security-report'
-          workdir: ${{ github.workspace }}/zap-reports
-
 
       - name: Upload ZAP Reports
         uses: actions/upload-artifact@v4
         with:
-          name: zap-security-reports
-          path: ${{ github.workspace }}/zap-reports/report_*
+          name: zap_security_reports
+          path: |
+            report_html.html
+            report_md.md
+            report_json.json
         if: always()
 
       - name: Stop Docker Compose
@@ -188,4 +183,4 @@ jobs:
         run: |
           echo "✅ Deployment to staging completed successfully"
           echo "🔗 Staging URL: https://your-staging-url.com"
-          echo "📊 Security scan results: Check the zap-security-reports artifact"
+          echo "📊 Security scan results: Check the zap_security_reports artifact"
